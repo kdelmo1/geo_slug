@@ -133,8 +133,6 @@ const App: React.FC = () => {
 
   if (!isLoaded) return <div>Loading...</div>;
 
-  console.log("My Key:", import.meta.env.API_KEY);
-
   return (
     <div style={{ position: 'relative', height: '100vh', width: '100vw' }}>
       
