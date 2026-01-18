@@ -20,6 +20,24 @@ PinTheSlug drops you into a random location and challenges you to pinpoint where
 
 ---
 
+## Installs and Steps
+
+- git clone git@github.com:kdelmo1/geo_slug.git
+- npm install 
+- Go to Supabase Dashboard → Authentication → Sign in / Providers
+- Authorized redirect URL: https://<your-project-id>.supabase.co/auth/v1/callback
+- Restrict signin to @ucsc.edu (optional)
+- Google Cloud Console → Create API Key
+- touch .env
+- add these following variables
+  - VITE_SUPABASE_URL=https://<your-project-id>.supabase.co
+  - VITE_SUPABASE_ANON_KEY="KEY"
+  - VITE_GOOGLE_MAPS_API_KEY="KEY"
+- npm run dev
+
+
+---
+
 ## How to Play
 
 1. You’re dropped into a random location OR you're given an image of a location on the UCSC campus
