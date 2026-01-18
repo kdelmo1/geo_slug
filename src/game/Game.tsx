@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
@@ -98,11 +98,9 @@ const calculateDistanceMeters = (
 const DraggableResult = ({
   children,
   title,
-  onClose,
 }: {
   children: React.ReactNode;
   title: string;
-  onClose: () => void;
 }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 400, height: 300 });
@@ -446,7 +444,6 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
       {
         location: randomPoint,
         radius: 50,
-        source: google.maps.StreetViewSource.GOOGLE,
       },
       (data, status) => {
         if (status === "OK" && data?.location?.latLng) {
@@ -748,7 +745,6 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
                 ? currentChallenge.name || "Location Result"
                 : "Round Result"
             }
-            onClose={handleNextRound}
           >
             <div style={{ textAlign: "center" }}>
               <div
