@@ -323,13 +323,6 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
     }
   };
 
-  const restartGame = () => {
-    setRound(1);
-    setTotalScore(0);
-    setRoundHistory([]);
-    startRound();
-  };
-
   const handleNextRound = async () => {
     if (round < TOTAL_ROUNDS) {
       setRound((r) => r + 1);
@@ -599,7 +592,6 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
                       disableDefaultUI: true,
                       enableCloseButton: false,
                       showRoadLabels: false,
-                      source: google.maps.StreetViewSource.GOOGLE,
                       imageDateControl: false,
                       motionTracking: false,
                       motionTrackingControl: false,
