@@ -6,7 +6,7 @@
 
 ## What is PinTheSlug?
 
-PinTheSlug drops you into a random location and challenges you to pinpoint where you are on the map. The closer your guess, the higher your score. What differentiates PinTheSlug from is its UCSC-bound map and its still images of locations that cannot be accessed from Google Maps' street view. 
+PinTheSlug drops you into a random location and challenges you to pinpoint where you are on the map. The closer your guess, the higher your score. What differentiates PinTheSlug from GeoGuessr is its UCSC-bound map and its still images of locations that cannot be accessed from Google Maps' street view. 
 
 ---
 
