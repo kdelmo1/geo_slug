@@ -407,7 +407,7 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
       // Save the score
       const { error: scoreError } = await supabase.from("scores").insert({
         user_id: user.id,
-        score: totalScore + roundScore, // Include the final round score
+        score: totalScore, // Include the final round score
       });
 
       if (scoreError) {
