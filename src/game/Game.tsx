@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, StreetViewPanorama, Marker, Polyline, Polygon } from '@react-google-maps/api';
-import { supabase } from '../lib/supabaseClient';
+import { supabase } from '../lib/supabase';
 
 // === CONFIGURATION ===
 

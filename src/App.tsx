@@ -6,7 +6,6 @@ export default function App() {
   const [playing, setPlaying] = useState(false);
 
   return (
-    // We remove the layout styling here because Game.tsx handles its own layout
     <>
       {playing ? (
         <Game onExit={() => setPlaying(false)} />
