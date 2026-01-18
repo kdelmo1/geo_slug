@@ -196,7 +196,7 @@ button, a, [role="button"], .pointer-cursor {
   
   /* 3. OUTER GLOW (The "Radiating" effect) */
   /* This creates a fuzzy orange light around the outside of the button */
-  box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.7);
+  box-shadow: 0 0 30px 10px rgba(76, 175, 80, 0.6); /* Green outer glow */
 }
 
 /* THE TEXT */
