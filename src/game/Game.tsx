@@ -1,13 +1,12 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   GoogleMap,
   useJsApiLoader,
   StreetViewPanorama,
   Marker,
   Polyline,
-  Polygon,
 } from "@react-google-maps/api";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabaseClient";
 
 // === CONFIGURATION ===
 
@@ -94,15 +93,11 @@ const calculateDistanceMeters = (
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-// === UPDATED DRAGGABLE WINDOW COMPONENT ===
+// === DRAGGABLE WINDOW COMPONENT ===
 const DraggableResult = ({
   children,
-  title,
-  onClose,
 }: {
   children: React.ReactNode;
-  title: string;
-  onClose: () => void;
 }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [dimensions, setDimensions] = useState({ width: 400, height: 300 });
@@ -110,17 +105,14 @@ const DraggableResult = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  // Center initially
   useEffect(() => {
     setPosition({
-      x: window.innerWidth / 2 - 200,
-      y: window.innerHeight / 2 - 250,
+      x: window.innerWidth / 2 - 700,
+      y: window.innerHeight / 2 - 150,
     });
   }, []);
 
-  // --- DRAG LOGIC ---
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Only drag if we click the header (not the resize handle)
     setIsDragging(true);
     setDragOffset({
       x: e.clientX - position.x,
@@ -158,10 +150,9 @@ const DraggableResult = ({
     };
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
-  // --- RESIZE LOGIC ---
   const handleResizeMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Stop the drag event from firing
+    e.stopPropagation();
 
     const startX = e.clientX;
     const startY = e.clientY;
@@ -195,70 +186,52 @@ const DraggableResult = ({
         backgroundColor: "white",
         borderRadius: "12px",
         boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
-        zIndex: 1000,
+        zIndex: 2000,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
-        // REMOVED 'resize: both' to fix the cursor fighting issue
       }}
     >
-      {/* Header */}
       <div
         onMouseDown={handleMouseDown}
         className={isDragging ? "grabbing-cursor" : "grab-cursor"}
         style={{
-          padding: "15px",
+          padding: "10px",
           background: "#f1f1f1",
           borderBottom: "1px solid #ddd",
           userSelect: "none",
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "center",
-          fontWeight: "bold",
-          color: "#333",
         }}
       >
-        <span>{title}</span>
-        <div
-          style={{
-            fontSize: "12px",
-            color: "#888",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
-        >
-          Drag
           <span
             className="move-cursor"
             style={{
               display: "inline-block",
-              width: "16px",
-              height: "16px",
+              width: "32px",
+              height: "32px",
               background: "url(/cursors/four.png) center/contain no-repeat",
               opacity: 0.6,
             }}
           ></span>
-        </div>
       </div>
 
-      <div style={{ padding: "20px", overflowY: "auto", flex: 1 }}>
+      <div style={{ padding: "20px", overflowY: "auto", flex: 1, textAlign: 'center' }}>
         {children}
       </div>
 
-      {/* Custom Resize Handle (Bottom-Right) */}
       <div
         onMouseDown={handleResizeMouseDown}
-        className="resize-cursor" // Uses your custom CSS class
+        className="resize-cursor"
         title="Resize"
         style={{
           position: "absolute",
           bottom: 0,
           right: 0,
-          width: "30px", // Larger hit area
+          width: "30px",
           height: "30px",
           zIndex: 20,
-          // We use a small gradient to make it look like a handle
           background: "linear-gradient(135deg, transparent 50%, #ddd 50%)",
           borderBottomRightRadius: "12px",
         }}
@@ -362,7 +335,6 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
       setRound((r) => r + 1);
       startRound();
     } else {
-      // Save score before showing game over screen
       await saveScore();
       setGameMode("GAME_OVER");
     }
@@ -370,17 +342,12 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
 
   const saveScore = async () => {
     try {
-      // Get current user
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) {
-        console.log("No user logged in, skipping score save");
-        return;
-      }
+      if (!user) return;
 
-      // Check if user exists in users table, if not create them
       const { data: existingUser } = await supabase
         .from("users")
         .select("id")
@@ -388,7 +355,6 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
         .single();
 
       if (!existingUser) {
-        // Create user record
         const { error: userError } = await supabase.from("users").insert({
           id: user.id,
           student_email: user.email || "",
@@ -397,24 +363,15 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
             user.email?.split("@")[0] ||
             "Anonymous",
         });
-
-        if (userError) {
-          console.error("Error creating user:", userError);
-          return;
-        }
+        if (userError) console.error("Error creating user:", userError);
       }
 
-      // Save the score
       const { error: scoreError } = await supabase.from("scores").insert({
         user_id: user.id,
-        score: totalScore, // Include the final round score
+        score: totalScore, 
       });
 
-      if (scoreError) {
-        console.error("Error saving score:", scoreError);
-      } else {
-        console.log("Score saved successfully!");
-      }
+      if (scoreError) console.error("Error saving score:", scoreError);
     } catch (error) {
       console.error("Error in saveScore:", error);
     }
@@ -503,7 +460,7 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
   };
 
   if (!isLoaded || isFetchingLocations)
-    return <div style={{ color: "black", padding: 20 }}>Loading...</div>;
+    return <div style={{ color: "black", padding: 20 }}></div>;
 
   return (
     <div
@@ -515,24 +472,60 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
         backgroundColor: "transparent",
       }}
     >
-      {/* HUD */}
+      
+      {/* === HUD (Pill Shape, Tucked Behind) === */}
       {gameMode !== "GAME_OVER" && (
         <div
           style={{
             position: "absolute",
-            top: "15px",
-            left: "20px",
-            zIndex: 50,
-            backgroundColor: "rgba(255,255,255,0.9)",
-            padding: "10px 20px",
-            borderRadius: "8px",
-            fontWeight: "bold",
-            fontSize: "18px",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+            top: "20px",
+            left: "30px",
+            // Always use 0 to tuck behind windows (Window Z is 10)
+            zIndex: 0, 
+            
+            // PILL SHAPE STYLING
+            backgroundColor: "white",
+            borderRadius: "20px",  
+            boxShadow: "0 8px 20px rgba(0,0,0,0.2)",
+            
+            // Layout
+            display: "flex",
+            alignItems: "center",
+            paddingBottom: "35px", 
+            overflow: "hidden", 
+            
+            fontFamily: 'miamiwriting, sans-serif',
+            color: "#333",
           }}
         >
-          Round {round} / {TOTAL_ROUNDS} &nbsp; | &nbsp; Total Score:{" "}
-          {totalScore}
+          {/* LEFT SIDE: ROUND */}
+          <div style={{
+            padding: "5px 25px 15px 25px", 
+            fontSize: "24px",
+            fontWeight: "bold",
+            color: "#4CAF50" 
+          }}>
+             Round {round} / {TOTAL_ROUNDS}
+          </div>
+
+          {/* DIVIDER LINE */}
+          <div style={{
+             width: "2px",
+             height: "30px",
+             backgroundColor: "#ddd",
+             boxShadow: "1px 0 2px rgba(0,0,0,0.1) inset"
+          }}></div>
+
+          {/* RIGHT SIDE: SCORE */}
+          <div style={{
+             padding: "5px 25px 15px 25px", 
+             fontSize: "24px",
+             fontWeight: "bold",
+             color: "#555",
+          }}>
+             Total: {totalScore}
+          </div>
+
         </div>
       )}
 
@@ -561,22 +554,32 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
             display: "flex",
             width: "100%",
             height: "100%",
-            padding: "60px 20px 20px 20px",
+            padding: "65px 20px 20px 20px", 
             boxSizing: "border-box",
             gap: "20px",
           }}
         >
-          {/* Left: Street View */}
+          {/* Left: Street View (Z-Index High to cover bottom of pill) */}
           <div
             style={{
               flex: 2,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              position: "relative",
+              zIndex: 10, // <--- COVERS THE HUD
             }}
           >
+            {/* BORDER IMAGE CONTAINER */}
             <div
-              style={{ width: "100%", height: "100%", position: "relative" }}
+              style={{ 
+                width: "100%", 
+                height: "100%", 
+                position: "relative",
+                borderRadius: "12px",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+                background: 'white'
+              }}
             >
               {currentChallenge.mode === "STREET_VIEW" ? (
                 <GoogleMap
@@ -633,6 +636,7 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
               display: "flex",
               flexDirection: "column",
               gap: "15px",
+              zIndex: 10, // Keep this high too
             }}
           >
             <div
@@ -646,7 +650,7 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
               <GoogleMap
                 mapContainerStyle={guessingMapStyle}
                 center={UCSC_CENTER}
-                zoom={13.5}
+                zoom={14.5} 
                 onClick={onMapClick}
                 options={{
                   streetViewControl: false,
@@ -659,49 +663,47 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
                     strictBounds: false,
                   },
                   clickableIcons: false,
-
-                  // === UPDATED CURSORS ===
-                  // Idle: Open Hand
-                  draggableCursor: "url(/cursors/hand.png) 32 32, grab",
-                  // Dragging: Closed Hand
-                  draggingCursor:
-                    "url(/cursors/closed-hand.png) 32 32, grabbing",
+                  draggableCursor: "url(/cursors/arrow.png) 6 5, grab",
+                  draggingCursor: "url(/cursors/closed-hand.png) 32 32, grabbing",
                 }}
               >
-                {guess && <Marker position={guess} clickable={false} />}
-                <Polygon
-                  paths={UCSC_POLYGON_PATH}
-                  options={{
-                    strokeColor: "#FF0000",
-                    strokeOpacity: 0.8,
-                    strokeWeight: 2,
-                    fillColor: "#FF0000",
-                    fillOpacity: 0.05,
-                    clickable: false,
-                  }}
-                />
+                {guess && (
+                    <Marker
+                        position={guess}
+                        clickable={false}
+                        label={{
+                            text: "●",
+                            color: "black",
+                            fontSize: "14px",
+                        }}
+                        icon={{
+                            path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z",
+                            fillColor: "#EA4335",   // Red Fill
+                            fillOpacity: 1,
+                            strokeColor: "#FFFFFF", // White Stroke
+                            strokeWeight: 3,
+                            scale: 2,
+                            anchor: new google.maps.Point(12, 22),
+                            labelOrigin: new google.maps.Point(12, 9),
+                        }}
+                    />
+                )}
               </GoogleMap>
             </div>
-            {
-              <button
-                className="guess-button-wrapper" // Uses the new CSS class
-                onClick={handleGuess}
-                disabled={!guess}
-              >
-                {/* 1. The Image */}
-                <img
-                  src="/guess_button.png"
-                  alt="Guess"
-                  className="guess-btn-img"
-                />
-
-                {/* 2. The Glow Overlay (Appears on hover) */}
-                <div className="guess-btn-glow" />
-
-                {/* 3. The Text (Centered using MS_PAIN font) */}
-                <span className="guess-btn-text">GUESS</span>
-              </button>
-            }
+            
+            <button
+              className="guess-button-wrapper"
+              onClick={handleGuess}
+              disabled={!guess}
+            >
+              <img
+                src="/guess_button.png"
+                alt="Guess"
+                className="guess-btn-img"
+              />
+              <div className="guess-btn-glow" />
+              <span className="guess-btn-text">GUESS</span>
+            </button>
           </div>
         </div>
       )}
@@ -709,82 +711,163 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
       {/* RESULT MODE (Draggable Window) */}
       {gameMode === "RESULT" && guess && currentChallenge && (
         <div style={{ width: "100%", height: "100%", position: "relative" }}>
-          {/* Full Screen Map Background */}
-          <GoogleMap
-            mapContainerStyle={{ width: "100%", height: "100%" }}
-            center={UCSC_CENTER}
-            zoom={14}
-            options={{
-              streetViewControl: false,
-              mapTypeControl: false,
-              draggableCursor: "url(/cursors/hand.png) 32 32, grab",
-              draggingCursor: "url(/cursors/closed-hand.png) 32 32, grabbing",
-            }}
-          >
-            <Marker
-              position={{
-                lat: currentChallenge.lat,
-                lng: currentChallenge.lng,
-              }}
-              label="Goal"
-            />
-            <Marker position={guess} label="You" />
-            <Polyline
-              path={[
-                { lat: currentChallenge.lat, lng: currentChallenge.lng },
-                guess,
-              ]}
+          
+          {/* Full Screen Map Background -> NOW WRAPPED AND PADDED to Reveal Background & Tab */}
+          <div style={{
+            position: "absolute",
+            top: "65px",  // Matched to Guessing Screen padding (leaves room for HUD tab)
+            bottom: "20px",
+            left: "20px",
+            right: "20px",
+            borderRadius: "12px", // Matched to Guessing Screen
+            zIndex: 10, // COVERS THE HUD
+            overflow: "hidden",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.3)"
+          }}>
+            <GoogleMap
+              mapContainerStyle={{ width: "100%", height: "100%" }}
+              center={UCSC_CENTER}
+              zoom={14}
               options={{
-                strokeColor: "#FF0000",
-                strokeOpacity: 1.0,
-                strokeWeight: 2,
+                streetViewControl: false,
+                mapTypeControl: false,
+                draggableCursor: "url(/cursors/arrow.png) 6 5, grab",
+                draggingCursor: "url(/cursors/closed-hand.png) 32 32, grabbing",
               }}
+            >
+            <Marker
+                position={{
+                    lat: currentChallenge.lat,
+                    lng: currentChallenge.lng,
+                }}
+                // 1. ADD THE LABEL PROP HERE
+                label={{
+                    text: "●",          // Unicode black circle
+                    color: "black",     // Color of the dot
+                    fontSize: "14px",   // Size of the dot
+                }}
+                icon={{
+                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z",
+                    fillColor: "#FFD700",
+                    fillOpacity: 1,
+                    strokeColor: "#FFFFFF",
+                    strokeWeight: 3,
+                    scale: 2,
+                    anchor: new google.maps.Point(12, 22),
+                    // 2. ADD THIS LINE TO CENTER THE DOT
+                    labelOrigin: new google.maps.Point(12, 9),
+                }}
             />
-          </GoogleMap>
 
-          <DraggableResult
-            title={
-              currentChallenge.mode === "IMAGE"
-                ? currentChallenge.name || "Location Result"
-                : "Round Result"
-            }
-            onClose={handleNextRound}
-          >
-            <div style={{ textAlign: "center" }}>
-              <div
-                style={{
-                  height: "10px",
-                  width: "100%",
-                  background: "#ddd",
-                  borderRadius: "5px",
-                  marginBottom: "15px",
-                  overflow: "hidden",
+            <Marker
+                position={guess}
+                // 1. ADD THE LABEL PROP HERE
+                label={{
+                    text: "●",
+                    color: "black", // You can change this to "white" if you prefer
+                    fontSize: "14px",
                 }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${(roundScore / 5000) * 100}%`,
-                    background: "#4CAF50",
-                  }}
-                ></div>
-              </div>
+                icon={{
+                    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z",
+                    fillColor: "#EA4335",
+                    fillOpacity: 1,
+                    strokeColor: "#FFFFFF",
+                    strokeWeight: 3,
+                    scale: 2,
+                    anchor: new google.maps.Point(12, 22),
+                    // 2. ADD THIS LINE TO CENTER THE DOT
+                    labelOrigin: new google.maps.Point(12, 9),
+                }}
+            />
+              <Polyline
+                path={[
+                  { lat: currentChallenge.lat, lng: currentChallenge.lng },
+                  guess,
+                ]}
+                options={{
+                  strokeColor: "#FF0000",
+                  strokeOpacity: 1.0,
+                  strokeWeight: 2,
+                }}
+              />
+            </GoogleMap>
+            {/* === NEW CONTROLS OVERLAY (Overlayed on Map) === */}
+            <div style={{
+              position: 'absolute',
+              bottom: '25px', 
+              left: '0',
+              right: '0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              padding: '0 40px',
+              zIndex: 30, // Above Map
+              pointerEvents: 'none', // Let clicks pass through empty space
+              fontFamily: 'miamiwriting, sans-serif'
+            }}>
+                {/* Left: Distance */}
+                <div style={{ 
+                  pointerEvents: 'auto',
+                  backgroundColor: 'white',
+                  padding: '10px 20px',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '14px', color: '#888', textTransform: 'uppercase' }}>Distance</div>
+                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#555' }}>
+                    {distanceMeters?.toFixed(0)}m
+                  </div>
+                </div>
 
-              <h1
-                style={{ fontSize: "42px", margin: "5px 0", color: "#4CAF50" }}
-              >
-                {roundScore} pts
+                {/* Center: Next Button */}
+                <div style={{ pointerEvents: 'auto' }}>
+                  {/* --- REPLACED BUTTON --- */}
+                  <button
+                    className="next-button-wrapper"
+                    onClick={handleNextRound}
+                  >
+                    {/* Ensure you have next_button.png in your public folder */}
+                    <img src="/next_button.png" alt="Next" className="next-btn-img" />
+                    <div className="next-btn-glow" />
+                    <span className="next-btn-text">
+                      {round < TOTAL_ROUNDS ? "NEXT ROUND" : "FINISH GAME"}
+                    </span>
+                  </button>
+                  {/* ----------------------- */}
+                </div>
+
+                {/* Right: Round Score */}
+                <div style={{ 
+                  pointerEvents: 'auto',
+                  backgroundColor: 'white',
+                  padding: '10px 20px',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                  textAlign: 'center'
+                }}>
+                   <div style={{ fontSize: '14px', color: '#888', textTransform: 'uppercase' }}>Round Score</div>
+                   <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#4CAF50' }}>
+                     {roundScore} pts
+                   </div>
+                </div>
+            </div>
+          </div>
+        {/* Draggable Window (ONLY IF NAME EXISTS) */}
+          {currentChallenge.name ? (
+            <DraggableResult>
+              {/* Bold Title */}
+              <h1 style={{ 
+                fontFamily: 'miamiwriting, sans-serif', 
+                fontSize: "36px", 
+                margin: "5px 0", 
+                color: "#333",
+                fontWeight: 'bold'
+              }}>
+                {currentChallenge.name}
               </h1>
-              <p
-                style={{
-                  fontSize: "18px",
-                  color: "#555",
-                  marginBottom: "20px",
-                }}
-              >
-                Distance: <strong>{distanceMeters?.toFixed(0)} meters</strong>
-              </p>
 
+              {/* Fun Fact */}
               {currentChallenge.funFact && (
                 <div
                   style={{
@@ -793,7 +876,7 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
                     borderRadius: "8px",
                     borderLeft: "4px solid #fccf04",
                     textAlign: "left",
-                    marginBottom: "20px",
+                    marginTop: "15px",
                     fontStyle: "italic",
                     color: "#444",
                   }}
@@ -803,25 +886,8 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
                   {currentChallenge.funFact}
                 </div>
               )}
-
-              <button
-                onClick={handleNextRound}
-                style={{
-                  marginTop: "10px",
-                  padding: "12px 30px",
-                  background: "#2196F3",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  fontSize: "18px",
-                  fontWeight: "bold",
-                }}
-              >
-                {round < TOTAL_ROUNDS ? "Next Round" : "Finish Game"}
-              </button>
-            </div>
-          </DraggableResult>
+            </DraggableResult>
+          ) : null}
         </div>
       )}
 
@@ -835,33 +901,33 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            background: "#fccf04",
           }}
         >
           <div
             style={{
               backgroundColor: "white",
-              padding: "40px",
+              padding: "30px",
               borderRadius: "20px",
               textAlign: "center",
               boxShadow: "0 10px 40px rgba(0,0,0,0.2)",
               width: "90%",
-              maxWidth: "500px",
+              maxWidth: "400px",
             }}
           >
             <h1
-              style={{ fontSize: "36px", color: "#333", marginBottom: "10px" }}
+              style={{ fontSize: "52px", color: "#333", marginBottom: "10px", fontFamily: 'miamiwriting, sans-serif' }}
             >
               Game Over!
             </h1>
 
-            <div style={{ margin: "30px 0" }}>
+            <div style={{ margin: "20px 0" }}>
               <div
                 style={{
-                  fontSize: "16px",
+                  fontSize: "32px",
                   textTransform: "uppercase",
                   color: "#888",
                   letterSpacing: "1px",
+                  fontFamily: 'miamiwriting, sans-serif'
                 }}
               >
                 Final Score
@@ -870,20 +936,21 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
                 style={{
                   fontSize: "64px",
                   fontWeight: "bold",
-                  color: "#2196F3",
+                  color: "#4CAF50",
+                  fontFamily: 'miamiwriting, sans-serif'
                 }}
               >
                 {totalScore}{" "}
-                <span style={{ fontSize: "24px", color: "#aaa" }}>/ 25000</span>
+                <span style={{ fontSize: "24px", color: "#666" }}>/ 25000</span>
               </div>
             </div>
 
             <div
               style={{
-                marginBottom: "30px",
+                marginBottom: "20px",
                 borderTop: "1px solid #eee",
                 borderBottom: "1px solid #eee",
-                padding: "15px 0",
+                padding: "10px 0",
               }}
             >
               {roundHistory.map((score, index) => (
@@ -892,49 +959,31 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    padding: "8px 0",
+                    padding: "6px 0",
                     borderBottom: index < 4 ? "1px dashed #eee" : "none",
                   }}
                 >
-                  <span style={{ color: "#555", fontWeight: "bold" }}>
+                  <span style={{ color: "#555", fontWeight: "bold", fontSize: '20px', fontFamily: 'miamiwriting, sans-serif' }}>
                     Round {index + 1}
                   </span>
-                  <span style={{ color: "#333" }}>{score} pts</span>
+                  <span style={{ color: "#666", fontSize: '20px', fontFamily: 'miamiwriting, sans-serif'}}>{score} pts</span>
                 </div>
               ))}
             </div>
 
+            {/* RETURN HOME BUTTON - Image Placeholder */}
             <button
-              onClick={restartGame}
-              style={{
-                padding: "15px 40px",
-                background: "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "20px",
-                fontWeight: "bold",
-              }}
+                onClick={onExit}
+                className="next-button-wrapper"
+                style={{
+                  width: '100%',
+                  minWidth: '280px',
+                  height: '80px'
+                }}
             >
-              Play Again
-            </button>
-
-            <button
-              onClick={onExit}
-              style={{
-                padding: "15px 40px",
-                background: "#f44336",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "20px",
-                fontWeight: "bold",
-                marginLeft: "10px",
-              }}
-            >
-              Exit
+                <img src="/home_button.png" alt="Return Home" className="next-btn-img" />
+                <div className="home-btn-glow" />
+                <span className="next-btn-text">RETURN HOME</span>
             </button>
           </div>
         </div>

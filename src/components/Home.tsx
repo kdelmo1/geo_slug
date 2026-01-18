@@ -6,15 +6,11 @@ interface HomeProps {
   onPlay: () => void;
 }
 
-// === 1. UPDATE INTERFACE ===
 interface ScoreEntry {
   id: number;
   score: number;
-  played_at: string; // <--- Changed from created_at to played_at
+  played_at: string;
 }
-
-// Dummy data for the background scrolling effect
-const DUMMY_SCORES = Array(20).fill("User123......5000pts");
 
 export default function Home({ onPlay }: HomeProps) {
   const [user, setUser] = useState<any>(null);
@@ -41,13 +37,11 @@ export default function Home({ onPlay }: HomeProps) {
 
   const fetchScores = async (userId: string) => {
     setLoading(true);
-    
-    // === 2. UPDATE QUERY ===
     const { data, error } = await supabase
       .from('scores')
       .select('*')
       .eq('user_id', userId)
-      .order('score', { ascending: false }); // Sort by highest score
+      .order('score', { ascending: false });
 
     if (error) {
       console.error("Error fetching scores:", error);
@@ -59,6 +53,15 @@ export default function Home({ onPlay }: HomeProps) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+  };
+
+  // Helper to get badge color based on rank
+  const getRankStyle = (index: number) => {
+    const rank = index + 1;
+    if (rank === 1) return { bg: "#FFD700", color: "#fff", shadow: "0 2px 4px rgba(218,165,32,0.5)" }; // Gold
+    if (rank === 2) return { bg: "#C0C0C0", color: "#fff", shadow: "0 2px 4px rgba(169,169,169,0.5)" }; // Silver
+    if (rank === 3) return { bg: "#CD7F32", color: "#fff", shadow: "0 2px 4px rgba(205,127,50,0.5)" }; // Bronze
+    return { bg: "#eee", color: "#555", shadow: "none" }; // Default Grey
   };
 
   return (
@@ -81,16 +84,19 @@ export default function Home({ onPlay }: HomeProps) {
         alignItems: 'center', 
         justifyContent: 'center',
         gap: '30px',
-        paddingLeft: '50px' 
+        paddingLeft: '50px',
+        marginBottom: '60px'
       }}>
         <img 
-          src="/geoslugger.png" 
-          alt="GeoSlugger Icon" 
+          src="/pintheslug.png" 
+          alt="PinTheSlug Icon" 
           style={{ 
-            width: '250px', 
+            width: '550px', 
             height: 'auto',
             objectFit: 'contain',
-            filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.3))'
+            filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.3))',
+            marginLeft: '120px', /* <--- SHIFTED RIGHT TO CENTER */
+            marginBottom: '-40px'
           }} 
         />
         
@@ -103,7 +109,7 @@ export default function Home({ onPlay }: HomeProps) {
           textAlign: 'center',
           lineHeight: '1.0'
         }}>
-          GeoSlugger
+          PinTheSlug
         </h1>
 
         <button 
@@ -142,7 +148,7 @@ export default function Home({ onPlay }: HomeProps) {
             <>
               {/* Header */}
               <div style={{
-                height: '50px',
+                height: '60px', 
                 backgroundColor: '#eee',
                 borderBottom: '2px solid #ccc',
                 display: 'flex',
@@ -151,21 +157,22 @@ export default function Home({ onPlay }: HomeProps) {
                 padding: '0 20px',
                 flexShrink: 0
               }}>
-                <span style={{ fontWeight: 'bold', color: '#333', fontSize: '14px' }}>
+                <span style={{ fontWeight: 'bold', color: '#333', fontSize: '24px' }}>
                   {user.email?.split('@')[0]}'s Top Scores
                 </span>
 
                 <button 
                   onClick={handleLogout}
                   style={{
-                    background: '#ff4d4d',
-                    color: 'white',
+                    background: 'none',
                     border: 'none',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer'
+                    padding: 0,
+                    color: '#ff4d4d', 
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    fontFamily: 'miamiwriting, sans-serif',
+                    fontSize: '24px',
+                    letterSpacing: '1px'
                   }}
                 >
                   Log Out
@@ -187,56 +194,107 @@ export default function Home({ onPlay }: HomeProps) {
                     </span>
                   </div>
                 ) : (
-                  scores.map((s) => (
-                    <div key={s.id} style={{
-                      padding: '15px',
-                      borderBottom: '1px solid #ddd',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      background: 'white',
-                      marginBottom: '8px',
-                      borderRadius: '8px',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-                    }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '20px', color: '#4CAF50' }}>
-                        {s.score} pts
-                      </span>
-                      
-                      {/* === 3. UPDATE DATE PARSING === */}
-                      <span style={{ fontSize: '12px', color: '#999', textAlign: 'right' }}>
-                        {new Date(s.played_at).toLocaleDateString()} <br/>
-                        {new Date(s.played_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </span>
-                    </div>
-                  ))
+                  scores.map((s, index) => {
+                    const rankStyle = getRankStyle(index);
+
+                    return (
+                      <div key={s.id} style={{
+                        padding: '10px 15px',
+                        borderBottom: '1px solid #ddd',
+                        display: 'flex',
+                        alignItems: 'center',
+                        background: 'white',
+                        marginBottom: '8px',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                      }}>
+                        <div style={{
+                          width: '32px', height: '32px', borderRadius: '50%',
+                          backgroundColor: rankStyle.bg, color: rankStyle.color,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 'bold', fontSize: '16px', marginRight: '15px',
+                          boxShadow: rankStyle.shadow, flexShrink: 0
+                        }}>
+                          {index + 1}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                           <span style={{ fontWeight: 'bold', fontSize: '24px', color: '#4CAF50', display: 'block' }}>
+                              {s.score} pts
+                           </span>
+                        </div>
+                        <span style={{ fontSize: '16px', color: '#999', textAlign: 'right' }}>
+                          {new Date(s.played_at).toLocaleDateString()} <br/>
+                          {new Date(s.played_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                        </span>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </>
           ) : (
             
-            /* === LOGGED OUT VIEW === */
+            /* === LOGGED OUT VIEW (Updated Dummies) === */
             <>
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '200%', zIndex: 0 }}>
                 <div className="scrolling-leaderboard">
-                  {[...DUMMY_SCORES, ...DUMMY_SCORES].map((text, i) => (
-                    <div key={i} style={{
-                      padding: '15px', borderBottom: '2px solid white', textAlign: 'center',
-                      fontFamily: 'monospace', fontSize: '18px', color: '#666',
-                      backgroundColor: 'rgba(230, 230, 230, 0.5)'
-                    }}>
-                      {text}
-                    </div>
-                  ))}
+                  {/* Create 40 dummy items (20 original + 20 clone for looping) */}
+                  {Array.from({ length: 40 }).map((_, i) => {
+                    // Use modulo to make ranks 1-20 then repeat 1-20
+                    const rankIndex = i % 20; 
+                    const rankStyle = getRankStyle(rankIndex);
+                    // Fake descending score
+                    const dummyScore = 25000 - (rankIndex * 850); 
+                    
+                    return (
+                      <div key={i} style={{
+                        padding: '10px 15px',
+                        borderBottom: '1px solid #ddd', // Lighter border for background feel
+                        display: 'flex',
+                        alignItems: 'center',
+                        background: 'rgba(255, 255, 255, 0.5)', // Semi-transparent white
+                        marginBottom: '8px',
+                        borderRadius: '8px',
+                        margin: '10px 15px' // Add horizontal margin to match the real look
+                      }}>
+                        {/* 1. DUMMY RANK CIRCLE */}
+                        <div style={{
+                          width: '32px', height: '32px', borderRadius: '50%',
+                          backgroundColor: rankStyle.bg, color: rankStyle.color,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 'bold', fontSize: '16px', marginRight: '15px',
+                          boxShadow: rankStyle.shadow, flexShrink: 0,
+                          opacity: 0.8 // Slightly faded
+                        }}>
+                          {rankIndex + 1}
+                        </div>
+
+                        {/* 2. DUMMY SCORE */}
+                        <div style={{ flex: 1 }}>
+                           <span style={{ fontWeight: 'bold', fontSize: '24px', color: '#555', display: 'block' }}>
+                              {dummyScore} pts
+                           </span>
+                        </div>
+                        
+                        {/* 3. DUMMY DATE */}
+                        <span style={{ fontSize: '16px', color: '#888', textAlign: 'right' }}>
+                          1/18/2026 <br/>
+                          12:00 PM
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
+              {/* The Black Overlay */}
               <div style={{
                 position: 'absolute', inset: 0,
                 backgroundColor: 'rgba(0, 0, 0, 0.7)',
                 zIndex: 1, backdropFilter: 'blur(3px)'
               }} />
 
+              {/* Login Prompt */}
               <div style={{
                 position: 'relative', zIndex: 2, height: '100%',
                 display: 'flex', flexDirection: 'column',

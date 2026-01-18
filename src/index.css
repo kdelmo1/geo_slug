@@ -78,14 +78,14 @@ body {
 /* Used for buttons, links, and map controls */
 /* Hotspot: 22 5 (Adjust this if the finger tip is in a different spot) */
 button, a, [role="button"], .pointer-cursor {
-  cursor: url('/cursors/pointer.png') 22 5, pointer !important;
+  cursor: url('/cursors/arrow.png') 6 5, pointer !important;
 }
 
 /* 3. OPEN HAND (Idle / Hovering) */
 /* Used for hovering over the map or draggable headers */
 /* Hotspot: 32 32 (Center) */
 .grab-cursor {
-  cursor: url('/cursors/hand.png') 32 32, grab !important;
+  cursor: url('/cursors/arrow.png') 32 32, grab !important;
 }
 
 /* 4. CLOSED HAND (Dragging / Grabbing) */
@@ -116,7 +116,7 @@ button, a, [role="button"], .pointer-cursor {
 
 /* Force "Open Hand" on the Map Canvas (Idle) */
 .gm-style canvas {
-  cursor: url('/cursors/hand.png') 32 32, grab !important;
+  cursor: url('/cursors/arrow.png') 32 32, grab !important;
 }
 
 /* Force "Closed Hand" when dragging the Map */
@@ -129,7 +129,7 @@ button, a, [role="button"], .pointer-cursor {
 .gmnoprint, 
 .gm-control-active, 
 .gm-svpc {
-  cursor: url('/cursors/pointer.png') 22 5, pointer !important;
+  cursor: url('/cursors/arrow.png') 6 5, pointer !important;
 }
 
 /* === CUSTOM GUESS BUTTON === */
@@ -143,7 +143,7 @@ button, a, [role="button"], .pointer-cursor {
   transition: transform 0.1s ease;
   user-select: none;
   /* Use your custom pointer cursor */
-  cursor: url('/cursors/pointer.png') 22 5, pointer;
+  cursor: url('/cursors/arrow.png') 6 5, pointer;
 }
 
 /* Interaction: Press effect */
@@ -172,12 +172,8 @@ button, a, [role="button"], .pointer-cursor {
   width: 100%;
   height: 100%;
   
-  /* 1. ORANGE OVERLAY */
-  /* This creates a semi-transparent orange layer over the whole image */
-  background-color: rgba(255, 165, 0, 0.5); 
-  
-  /* Optional: Make it hotter in the center (Sunburst effect) */
-  background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, rgba(255, 140, 0, 0.5) 100%);
+  background-color: rgba(76, 175, 80, 0.4); /* Green tint for Play */
+  background: radial-gradient(circle, rgba(100, 255, 100, 0.5) 0%, rgba(76, 175, 80, 0.4) 100%);
 
   opacity: 0; /* Hidden by default */
   transition: all 0.3s ease;
@@ -245,7 +241,7 @@ button, a, [role="button"], .pointer-cursor {
   padding: 0;
   transition: transform 0.1s ease;
   user-select: none;
-  cursor: url('/cursors/pointer.png') 22 5, pointer;
+  cursor: url('/cursors/arrow.png') 6 5, pointer;
   margin-top: 20px; /* Spacing from the title */
 }
 
@@ -305,4 +301,144 @@ button, a, [role="button"], .pointer-cursor {
      3px  3px 0 #006400;
   pointer-events: none;
   white-space: nowrap; /* Prevents text from wrapping if it gets too big */
+}
+
+/* === BLUE NEXT BUTTON STYLES === */
+.next-button-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s ease-in-out;
+  /* Ensure it doesn't get too crushed if container shrinks */
+  min-width: 300px; 
+  height: 90px;
+}
+
+.next-button-wrapper:hover {
+  transform: scale(1.02);
+}
+
+.next-button-wrapper:active {
+  transform: scale(0.98);
+}
+
+/* The Image behind */
+.next-btn-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Or cover, depending on image */
+  z-index: 1;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+/* The Blue Glow Element */
+/* === FOR THE NEXT BUTTON === */
+.next-btn-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* REDUCE THESE VALUES */
+  width: 75%;  /* Was 90% */
+  height: 50%; /* Was 70% */
+  background: rgba(33, 150, 243, 0.7);
+  filter: blur(10px); /* Reduced blur (Was 15px) */
+  border-radius: 30px;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 0;
+}
+
+.next-button-wrapper:hover .next-btn-glow {
+  opacity: 1;
+}
+
+/* The Text Overlay */
+.next-btn-text {
+  position: relative;
+  z-index: 2;
+  font-family: 'miamiwriting', sans-serif;
+  font-size: 30px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  letter-spacing: 1px;
+  pointer-events: none; /* Let clicks pass to wrapper */
+}
+
+/* === HOME BUTTON STYLES (Smaller Glow) === */
+.home-button-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.1s ease-in-out;
+  min-width: 280px; 
+  height: 80px;
+}
+
+.home-button-wrapper:hover {
+  transform: scale(1.02);
+}
+
+.home-button-wrapper:active {
+  transform: scale(0.98);
+}
+
+/* The Image behind */
+.home-btn-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: 1;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+/* The Smaller Blue Glow Element */
+.home-btn-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* REDUCE THESE VALUES */
+  width: 75%;  /* Was 70% */
+  height: 50%; /* Was 50% */
+  background: rgba(33, 150, 243, 0.7);
+  filter: blur(8px); /* Reduced blur (Was 12px) */
+  border-radius: 30px;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  z-index: 0;
+}
+
+.home-button-wrapper:hover .home-btn-glow {
+  opacity: 1;
+}
+
+/* The Text Overlay */
+.home-btn-text {
+  position: relative;
+  z-index: 2;
+  font-family: 'miamiwriting', sans-serif;
+  font-size: 28px; /* Slightly smaller than next button */
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  letter-spacing: 1px;
+  pointer-events: none;
 }
