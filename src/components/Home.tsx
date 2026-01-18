@@ -6,15 +6,14 @@ interface HomeProps {
   onPlay: () => void;
 }
 
-// Interface for your Score table
-// NOTE: Ensure your Supabase table is named 'scores' and has these columns.
+// === 1. UPDATE INTERFACE ===
 interface ScoreEntry {
   id: number;
   score: number;
-  created_at: string; // or 'timestamp' depending on your DB column name
+  played_at: string; // <--- Changed from created_at to played_at
 }
 
-// Dummy data for the background scrolling effect (Logged Out State)
+// Dummy data for the background scrolling effect
 const DUMMY_SCORES = Array(20).fill("User123......5000pts");
 
 export default function Home({ onPlay }: HomeProps) {
@@ -22,21 +21,18 @@ export default function Home({ onPlay }: HomeProps) {
   const [scores, setScores] = useState<ScoreEntry[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // === 1. AUTH & DATA FETCHING ===
   useEffect(() => {
-    // Check active session immediately
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) fetchScores(session.user.id);
     });
 
-    // Listen for login/logout events
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchScores(session.user.id);
       } else {
-        setScores([]); // Clear scores on logout
+        setScores([]);
       }
     });
 
@@ -45,13 +41,13 @@ export default function Home({ onPlay }: HomeProps) {
 
   const fetchScores = async (userId: string) => {
     setLoading(true);
-    // QUERY: Select scores for this user, ordered by newest first
-    // Note: If your column is named 'timestamp' instead of 'created_at', change it below.
+    
+    // === 2. UPDATE QUERY ===
     const { data, error } = await supabase
       .from('scores')
       .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false }); 
+      .order('score', { ascending: false }); // Sort by highest score
 
     if (error) {
       console.error("Error fetching scores:", error);
@@ -63,7 +59,6 @@ export default function Home({ onPlay }: HomeProps) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    // The onAuthStateChange listener above will handle setting user to null
   };
 
   return (
@@ -78,7 +73,7 @@ export default function Home({ onPlay }: HomeProps) {
       backgroundRepeat: 'no-repeat'
     }}>
       
-      {/* === LEFT SIDE (Icon, Title, Play Button) === */}
+      {/* === LEFT SIDE === */}
       <div style={{ 
         flex: 1, 
         display: 'flex', 
@@ -111,23 +106,17 @@ export default function Home({ onPlay }: HomeProps) {
           GeoSlugger
         </h1>
 
-        {/* 3. Custom Play Button */}
-        <button
-            className="play-button-wrapper"
-            onClick={onPlay}
+        <button 
+          className="play-button-wrapper"
+          onClick={onPlay}
         >
-            {/* The Image */}
-            <img src="/play_button.png" alt="Play" className="play-btn-img" />
-
-            {/* The Glow */}
-            <div className="play-btn-glow" />
-
-            {/* The Text */}
-            <span className="play-btn-text">PLAY</span>
+          <img src="/play_button.png" alt="Play" className="play-btn-img" />
+          <div className="play-btn-glow" />
+          <span className="play-btn-text">PLAY</span>
         </button>
       </div>
 
-      {/* === RIGHT SIDE (Window) === */}
+      {/* === RIGHT SIDE === */}
       <div style={{ 
         flex: 1, 
         display: 'flex', 
@@ -148,12 +137,10 @@ export default function Home({ onPlay }: HomeProps) {
           transform: 'translateX(-50px)' 
         }}>
 
-          {/* ==================================== */}
-          {/* SCENARIO A: LOGGED IN        */}
-          {/* ==================================== */}
           {user ? (
+            /* === LOGGED IN VIEW === */
             <>
-              {/* 1. Header Sliver */}
+              {/* Header */}
               <div style={{
                 height: '50px',
                 backgroundColor: '#eee',
@@ -164,12 +151,10 @@ export default function Home({ onPlay }: HomeProps) {
                 padding: '0 20px',
                 flexShrink: 0
               }}>
-                {/* User Name/Email */}
                 <span style={{ fontWeight: 'bold', color: '#333', fontSize: '14px' }}>
-                  {user.email?.split('@')[0]}'s Scores
+                  {user.email?.split('@')[0]}'s Top Scores
                 </span>
 
-                {/* Log Out Button */}
                 <button 
                   onClick={handleLogout}
                   style={{
@@ -187,7 +172,7 @@ export default function Home({ onPlay }: HomeProps) {
                 </button>
               </div>
 
-              {/* 2. Real Score List */}
+              {/* Score List */}
               <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
                 {loading ? (
                   <div style={{ textAlign: 'center', padding: '20px', color: '#666' }}>Loading...</div>
@@ -196,12 +181,12 @@ export default function Home({ onPlay }: HomeProps) {
                     height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                     flexDirection: 'column', color: '#888', gap: '10px'
                   }}>
+                    <span style={{ fontSize: '40px' }}>📉</span>
                     <span style={{ fontFamily: 'miamiwriting, sans-serif', fontSize: '24px' }}>
-                      No scores to display!
+                      No scores yet!
                     </span>
                   </div>
                 ) : (
-                  // List of Scores
                   scores.map((s) => (
                     <div key={s.id} style={{
                       padding: '15px',
@@ -217,8 +202,11 @@ export default function Home({ onPlay }: HomeProps) {
                       <span style={{ fontWeight: 'bold', fontSize: '20px', color: '#4CAF50' }}>
                         {s.score} pts
                       </span>
-                      <span style={{ fontSize: '12px', color: '#999' }}>
-                        {new Date(s.created_at).toLocaleDateString()}
+                      
+                      {/* === 3. UPDATE DATE PARSING === */}
+                      <span style={{ fontSize: '12px', color: '#999', textAlign: 'right' }}>
+                        {new Date(s.played_at).toLocaleDateString()} <br/>
+                        {new Date(s.played_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                       </span>
                     </div>
                   ))
@@ -227,11 +215,8 @@ export default function Home({ onPlay }: HomeProps) {
             </>
           ) : (
             
-          /* ==================================== */
-          /* SCENARIO B: LOGGED OUT       */
-          /* ==================================== */
+            /* === LOGGED OUT VIEW === */
             <>
-              {/* Background Scrolling Dummy Text */}
               <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '200%', zIndex: 0 }}>
                 <div className="scrolling-leaderboard">
                   {[...DUMMY_SCORES, ...DUMMY_SCORES].map((text, i) => (
@@ -246,14 +231,12 @@ export default function Home({ onPlay }: HomeProps) {
                 </div>
               </div>
 
-              {/* Black Overlay */}
               <div style={{
                 position: 'absolute', inset: 0,
                 backgroundColor: 'rgba(0, 0, 0, 0.7)',
                 zIndex: 1, backdropFilter: 'blur(3px)'
               }} />
 
-              {/* Login Prompt */}
               <div style={{
                 position: 'relative', zIndex: 2, height: '100%',
                 display: 'flex', flexDirection: 'column',
