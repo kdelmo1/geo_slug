@@ -1,22 +1,29 @@
+@font-face {
+  font-family: 'miamiwriting'; /* You can name this whatever you want */
+  src: url('/fonts/miamiwriting.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'miamiwriting', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
   background-color: #fccf04 !important;
-  color: #213547; 
+  color: #213547;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
-  /* === 1. DEFAULT CURSOR (Your Arrow Image) === */
-  /* 0 0 sets the "click point" to the top-left corner */
+
+  /* === 1. GLOBAL DEFAULT (Normal Arrow) === */
+  /* Hotspot: 0 0 (Top-Left tip) */
   cursor: url('/cursors/arrow.png') 0 0, auto;
 }
 
-body {
+/* body {
   margin: 0;
   display: flex;
   place-items: center;
@@ -29,6 +36,31 @@ body {
   width: 100%;
   height: 100%;
   background-color: #fccf04 !important;
+} */
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  
+  /* === CUSTOM BACKGROUND SETUP === */
+  /* 1. The Image */
+  background-image: url('/background.jpg'); /* Put your file in public/ folder */
+  
+  /* 2. Scaling Behavior */
+  background-size: cover;    /* Zooms image to fill screen; crops edges if needed */
+  background-position: center; /* Keeps the center of the image visible */
+  background-repeat: no-repeat; /* Prevents tiling */
+  background-attachment: fixed; /* Optional: Keeps background still while scrolling */
+}
+
+/* Update #root so it doesn't block the background with a solid color */
+#root {
+  width: 100%;
+  height: 100%;
+  /* background-color: #fccf04 !important; <--- REMOVE OR COMMENT THIS OUT */
 }
 
 /* Fix for invisible Google Maps tiles */
@@ -37,43 +69,158 @@ body {
   height: auto !important;
 }
 
-/* 1. Target ONLY the Canvas (The visual map/panorama layer) */
-.gm-style canvas {
-  cursor: url('/cursors/arrow.png') 0 0, auto !important;
+/* =========================================
+   CUSTOM CURSOR CLASSES
+   (Assumes 64x64px images)
+   ========================================= */
+
+/* 2. POINTER (Index Finger) */
+/* Used for buttons, links, and map controls */
+/* Hotspot: 22 5 (Adjust this if the finger tip is in a different spot) */
+button, a, [role="button"], .pointer-cursor {
+  cursor: url('/cursors/pointer.png') 22 5, pointer !important;
 }
 
-/* 2. Target the "active" state for dragging (Closed Hand) */
+/* 3. OPEN HAND (Idle / Hovering) */
+/* Used for hovering over the map or draggable headers */
+/* Hotspot: 32 32 (Center) */
+.grab-cursor {
+  cursor: url('/cursors/hand.png') 32 32, grab !important;
+}
+
+/* 4. CLOSED HAND (Dragging / Grabbing) */
+/* Used while actively clicking and dragging */
+/* Hotspot: 32 32 (Center) */
+.grabbing-cursor {
+  cursor: url('/cursors/closed-hand.png') 32 32, grabbing !important;
+}
+
+/* 5. FOUR ARROW (Move / Pan) */
+/* Can be used for specific move indicators */
+/* Hotspot: 32 32 (Center) */
+.move-cursor {
+  cursor: url('/cursors/four.png') 32 32, move !important;
+}
+
+/* 6. RESIZE ARROW (Diagonal Down-Right) */
+/* Used for the resize handle in the corner */
+/* Hotspot: 32 32 (Center) */
+.resize-cursor, ::-webkit-resizer {
+  cursor: url('/cursors/resize.png') 32 32, nwse-resize !important;
+}
+
+/* =========================================
+   GOOGLE MAPS OVERRIDES
+   (Forces the map to use your custom icons)
+   ========================================= */
+
+/* Force "Open Hand" on the Map Canvas (Idle) */
+.gm-style canvas {
+  cursor: url('/cursors/hand.png') 32 32, grab !important;
+}
+
+/* Force "Closed Hand" when dragging the Map */
 .gm-style canvas:active {
   cursor: url('/cursors/closed-hand.png') 32 32, grabbing !important;
 }
 
-/* 3. Target Navigation Controls & Overlays (specifically) */
+/* Force "Pointer Finger" on Map Controls (Zoom buttons, Pegman, etc.) */
 .gm-style-pbc, 
 .gmnoprint, 
-.gm-control-active {
-  cursor: url('/cursors/arrow.png') 0 0, pointer !important;
-}
-
-/* 4. Target Street View Link Arrows (The arrows on the ground) */
+.gm-control-active, 
 .gm-svpc {
-  cursor: url('/cursors/arrow.png') 0 0, pointer !important;
+  cursor: url('/cursors/pointer.png') 22 5, pointer !important;
 }
 
-/* === 2. CUSTOM CURSOR CLASSES === */
+/* === CUSTOM GUESS BUTTON === */
 
-/* The Hover State (Using system default 'grab' since you don't have an open hand image yet) */
-.grab-cursor {
-  cursor: grab !important;
+.guess-button-wrapper {
+  position: relative; /* Allows absolute positioning of text/glow inside */
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  transition: transform 0.1s ease;
+  user-select: none;
+  /* Use your custom pointer cursor */
+  cursor: url('/cursors/pointer.png') 22 5, pointer;
 }
 
-/* The Dragging State (Your Closed Hand Image) */
-/* 16 16 assumes a 32x32px image - adjust if your image size is different */
-.grabbing-cursor {
-  /* CHANGED TO 64 64 */
-  cursor: url('/cursors/closed-hand.png') 32 32, grabbing !important;
+/* Interaction: Press effect */
+.guess-button-wrapper:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
-/* Buttons (System pointer default) */
-button, a, [role="button"] {
-  cursor: pointer;
+/* Interaction: Disabled state */
+.guess-button-wrapper:disabled {
+  filter: grayscale(1) opacity(0.6);
+  cursor: not-allowed !important;
+}
+
+.guess-btn-img {
+  width: 100%;
+  display: block;
+  /* Optional: Adds a subtle shadow to the button image itself */
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+}
+
+/* THE GLOW OVERLAY */
+.guess-btn-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  
+  /* 1. ORANGE OVERLAY */
+  /* This creates a semi-transparent orange layer over the whole image */
+  background-color: rgba(255, 165, 0, 0.5); 
+  
+  /* Optional: Make it hotter in the center (Sunburst effect) */
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, rgba(255, 140, 0, 0.5) 100%);
+
+  opacity: 0; /* Hidden by default */
+  transition: all 0.3s ease;
+  pointer-events: none;
+  
+  /* 2. ENSURE IT COVERS CORNERS */
+  /* If your button image has rounded corners, match them here. 
+     Otherwise, the glow might spill out the corners. */
+  border-radius: 12px; 
+  z-index: 1; 
+}
+
+/* Show glow on hover (if not disabled) */
+.guess-button-wrapper:hover:not(:disabled) .guess-btn-glow {
+  opacity: 1;
+  
+  /* 3. OUTER GLOW (The "Radiating" effect) */
+  /* This creates a fuzzy orange light around the outside of the button */
+  box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.7);
+}
+
+/* THE TEXT */
+.guess-btn-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Perfectly center the text */
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  
+  /* Typography */
+  font-family: 'miamiwriting', sans-serif; /* Your custom font */
+  font-size: 28px; /* Adjust size to fit your button */
+  color: white; 
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  
+  /* Outline for readability */
+  text-shadow: 
+    -2px -2px 0 #000,  
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000;
+     
+  pointer-events: none;
 }
