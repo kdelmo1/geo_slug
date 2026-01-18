@@ -582,23 +582,23 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
                   }}
                   options={{ disableDefaultUI: true }}
                 >
-                  <StreetViewPanorama
-                    position={{
-                      lat: currentChallenge.lat,
-                      lng: currentChallenge.lng,
-                    }}
-                    visible={true}
-                    options={{
-                      disableDefaultUI: true,
-                      enableCloseButton: false,
-                      showRoadLabels: false,
-                      imageDateControl: false,
-                      motionTracking: false,
-                      motionTrackingControl: false,
-                      panControl: true,
-                      zoomControl: true,
-                    }}
-                  />
+                    <StreetViewPanorama
+                        visible={true}
+                        options={{
+                            position: {
+                                lat: currentChallenge.lat,
+                                lng: currentChallenge.lng
+                            },
+                            disableDefaultUI: true,
+                            enableCloseButton: false,
+                            showRoadLabels: false,
+                            imageDateControl: false,
+                            motionTracking: false,
+                            motionTrackingControl: false,
+                            panControl: true,
+                            zoomControl: true,
+                        }}
+                    />
                 </GoogleMap>
               ) : (
                 <div
