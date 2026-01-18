@@ -18,7 +18,7 @@ const ProfilePicture: React.FC<ProfilePictureProps> = ({
   return (
     <div className={`rounded-full overflow-hidden border-4 border-gray-300 ${sizeClasses[size]}`}>
       <img
-        src="vite.svg"
+        src="geoslugger-removebg.webp"
         alt={alt}
         className="w-full h-full object-cover"
         style={{ borderRadius: "50%", border: "4px solid #ccc", width: size === 'small' ? 64 : size === 'large' ? 192 : 128, height: size === 'small' ? 64 : size === 'large' ? 192 : 128 }}

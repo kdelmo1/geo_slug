@@ -196,7 +196,7 @@ button, a, [role="button"], .pointer-cursor {
   
   /* 3. OUTER GLOW (The "Radiating" effect) */
   /* This creates a fuzzy orange light around the outside of the button */
-  box-shadow: 0 0 20px 5px rgba(255, 165, 0, 0.7);
+  box-shadow: 0 0 30px 10px rgba(76, 175, 80, 0.6); /* Green outer glow */
 }
 
 /* THE TEXT */
@@ -223,4 +223,86 @@ button, a, [role="button"], .pointer-cursor {
      2px  2px 0 #000;
      
   pointer-events: none;
+}
+
+/* === SCROLLING LEADERBOARD ANIMATION === */
+@keyframes scrollUp {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); } /* Moves half way up (for seamless loop) */
+}
+
+.scrolling-leaderboard {
+  animation: scrollUp 15s linear infinite;
+}
+
+/* === CUSTOM PLAY BUTTON (Home Screen) === */
+
+.play-button-wrapper {
+  position: relative;
+  width: 320px; /* Fixed width for the home screen button */
+  border: none;
+  background: none;
+  padding: 0;
+  transition: transform 0.1s ease;
+  user-select: none;
+  cursor: url('/cursors/pointer.png') 22 5, pointer;
+  margin-top: 20px; /* Spacing from the title */
+}
+
+/* Click effect */
+.play-button-wrapper:active {
+  transform: scale(0.98);
+}
+
+.play-btn-img {
+  width: 100%;
+  display: block;
+  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+}
+
+/* GLOW OVERLAY (Orange/Gold) */
+.play-btn-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(76, 175, 80, 0.4); /* Green tint for Play */
+  background: radial-gradient(circle, rgba(100, 255, 100, 0.5) 0%, rgba(76, 175, 80, 0.4) 100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+  border-radius: 50px; /* Rounded corners to match button shape if needed */
+  z-index: 1;
+}
+
+.play-button-wrapper:hover .play-btn-glow {
+  opacity: 1;
+  box-shadow: 0 0 30px 10px rgba(76, 175, 80, 0.6); /* Green outer glow */
+}
+
+.play-btn-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Centers it perfectly */
+  z-index: 2;
+  
+  font-family: 'miamiwriting', sans-serif;
+  
+  /* === CHANGE THIS VALUE === */
+  font-size: 48px; /* Increased from 42px to fill the button */
+  
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 4px; /* increased spacing for a bolder look */
+  
+  /* Thick Outline to match the style */
+  text-shadow: 
+    -3px -3px 0 #006400,  
+     3px -3px 0 #006400,
+    -3px  3px 0 #006400,
+     3px  3px 0 #006400;
+  pointer-events: none;
+  white-space: nowrap; /* Prevents text from wrapping if it gets too big */
 }

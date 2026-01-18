@@ -330,7 +330,7 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
     setDistanceMeters(null);
     setGameMode("GUESSING");
 
-    const useStaticImage = Math.random() > 0.5;
+    const useStaticImage = Math.random() > 0.4;
 
     if (useStaticImage && supabaseLocations.length > 0) {
       const randomIndex = Math.floor(Math.random() * supabaseLocations.length);
