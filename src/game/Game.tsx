@@ -583,6 +583,7 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
                   options={{ disableDefaultUI: true }}
                 >
                     <StreetViewPanorama
+                        // @ts-ignore - Required for functionality but missing from library types
                         visible={true}
                         options={{
                             position: {
