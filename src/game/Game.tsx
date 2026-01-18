@@ -502,7 +502,6 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
             padding: "5px 25px 15px 25px", 
             fontSize: "24px",
             fontWeight: "bold",
-            color: "#4CAF50" 
           }}>
              Round {round} / {TOTAL_ROUNDS}
           </div>
