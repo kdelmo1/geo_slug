@@ -403,7 +403,6 @@ const Game: React.FC<GameProps> = ({ onExit }) => {
       {
         location: randomPoint,
         radius: 50,
-        source: google.maps.StreetViewSource.GOOGLE,
       },
       (data, status) => {
         if (status === "OK" && data?.location?.latLng) {
