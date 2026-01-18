@@ -3,14 +3,17 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Force the background to yellow globally */
   background-color: #fccf04 !important;
-  color: #213547; /* Dark text so it's readable on yellow */
+  color: #213547; 
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  
+  /* === 1. DEFAULT CURSOR (Your Arrow Image) === */
+  /* 0 0 sets the "click point" to the top-left corner */
+  cursor: url('/cursors/arrow.png') 0 0, auto;
 }
 
 body {
@@ -19,7 +22,7 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #fccf04 !important; /* Ensures no gray edges */
+  background-color: #fccf04 !important;
 }
 
 #root {
@@ -28,8 +31,49 @@ body {
   background-color: #fccf04 !important;
 }
 
-/* Fix for invisible Google Maps tiles (CRITICAL: KEEP THIS) */
+/* Fix for invisible Google Maps tiles */
 .gm-style img {
   max-width: none !important;
   height: auto !important;
+}
+
+/* 1. Target ONLY the Canvas (The visual map/panorama layer) */
+.gm-style canvas {
+  cursor: url('/cursors/arrow.png') 0 0, auto !important;
+}
+
+/* 2. Target the "active" state for dragging (Closed Hand) */
+.gm-style canvas:active {
+  cursor: url('/cursors/closed-hand.png') 32 32, grabbing !important;
+}
+
+/* 3. Target Navigation Controls & Overlays (specifically) */
+.gm-style-pbc, 
+.gmnoprint, 
+.gm-control-active {
+  cursor: url('/cursors/arrow.png') 0 0, pointer !important;
+}
+
+/* 4. Target Street View Link Arrows (The arrows on the ground) */
+.gm-svpc {
+  cursor: url('/cursors/arrow.png') 0 0, pointer !important;
+}
+
+/* === 2. CUSTOM CURSOR CLASSES === */
+
+/* The Hover State (Using system default 'grab' since you don't have an open hand image yet) */
+.grab-cursor {
+  cursor: grab !important;
+}
+
+/* The Dragging State (Your Closed Hand Image) */
+/* 16 16 assumes a 32x32px image - adjust if your image size is different */
+.grabbing-cursor {
+  /* CHANGED TO 64 64 */
+  cursor: url('/cursors/closed-hand.png') 32 32, grabbing !important;
+}
+
+/* Buttons (System pointer default) */
+button, a, [role="button"] {
+  cursor: pointer;
 }
